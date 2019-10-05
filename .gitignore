@@ -31,6 +31,7 @@ bower_components
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
+dist/
 
 # Dependency directories
 node_modules/
@@ -58,4 +59,10 @@ typings/
 .env
 
 # next.js build output
-.next
+.next/
+
+# nuxt.js build output
+.nuxt/
+
+# IDE config files
+.idea/

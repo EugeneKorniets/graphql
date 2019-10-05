@@ -1,0 +1,26 @@
+{
+  "name": "graphql",
+  "version": "0.0.1",
+  "description": "My first GraphQL experience",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EugeneKorniets/graphql.git"
+  },
+  "keywords": [
+    "graphql",
+    "node",
+    "apollo",
+    "vue",
+    "javascript"
+  ],
+  "author": "Eugene Korniets",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EugeneKorniets/graphql/issues"
+  },
+  "homepage": "https://github.com/EugeneKorniets/graphql#readme"
+}

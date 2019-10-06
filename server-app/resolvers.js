@@ -61,13 +61,13 @@ let tags = [
 
 const resolvers = {
   Query: {
-    totalPhotos: () => photos.length,
+    totalPhotos: (parent, args, { db }) => db.collection('photos').estimatedDocumentCount(),
 
-    allPhotos: () => photos,
+    allPhotos: (parent, args, { db }) => db.collection('photos').find().toArray(),
 
-    totalUsers: () => users.length,
+    totalUsers: (parent, args, { db }) => db.collection('users').estimatedDocumentCount(),
 
-    allUsers: () => users
+    allUsers: (parent, args, { db }) => db.collection('users').find().toArray()
   },
 
   Mutation: {
@@ -88,7 +88,7 @@ const resolvers = {
     postedBy: parent => users.find(user => user.githubLogin === parent.githubUser),
 
     taggedUsers: parent => tags
-    // возвращаем массив тегов для текущего пользователя
+      // возвращаем массив тегов для текущего пользователя
       .filter(tag => tag.photoID === parent.id)
       // возвращаем массив userID
       .map(tag => tag.userID)
@@ -100,7 +100,7 @@ const resolvers = {
     postedPhotos: parent => photos.filter(photo => photo.githubUser === parent.githubLogin),
 
     inPhotos: parent => tags
-    // возвращаем массив тегов для текущего юзера
+      // возвращаем массив тегов для текущего юзера
       .filter(tag => tag.userID === parent.id)
       // возвращаем массив photoID
       .map(tag => tag.photoID)

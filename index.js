@@ -1,4 +1,5 @@
 const { ApolloServer } = require('apollo-server')
+const { GraphQLScalarType } = require('graphql')
 
 const typeDefs = require('./server-app/typeDefs')
 
@@ -9,21 +10,24 @@ let photos = [
     name: 'Image 1 from 1 user',
     description: 'This 1s photo',
     category: 'SELFIE',
-    githubUser: 1
+    githubUser: 1,
+    created: '07-11-2018'
   },
   {
     id: 2,
     name: 'Image 2 from 1 user',
     description: 'This 1s photo',
     category: 'PORTRAIT',
-    githubUser: 1
+    githubUser: 1,
+    created: '12-15-2018'
   },
   {
     id: 3,
     name: 'Image 3 from 2 user',
     description: 'This 2s photo',
     category: 'ACTION',
-    githubUser: 2
+    githubUser: 2,
+    created: '07-11-2019'
   }
 ]
 let users = [
@@ -70,7 +74,8 @@ const resolvers = {
     postPhoto(parent, args) {
       let newPhoto = {
         id: _id++,
-        ...args.input
+        ...args.input,
+        created: new Date()
       }
       photos.push(newPhoto)
       return newPhoto
@@ -101,7 +106,15 @@ const resolvers = {
         .map(tag => tag.photoID)
         // возвращаем массив объектов Photo
         .map(photoID => photos.find(photo => photo.id === photoID))
-  }
+  },
+
+  DateTime: new GraphQLScalarType({
+    name: 'DateTime',
+    description: 'A valid date time value',
+    parseValue: value => new Date(value),
+    serialize: value => new Date(value).toISOString(),
+    parseLiteral: ast => ast.value
+  })
 }
 
 const server = new ApolloServer({

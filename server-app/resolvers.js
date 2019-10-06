@@ -32,7 +32,7 @@ let photos = [
 let users = [
   {
     githubLogin: 1,
-    name: 'Piter Parker'
+    name: 'Peter Parker'
   },
   {
     githubLogin: 2,

@@ -1,3 +1,8 @@
+const { authorizeWithGitHub } = require('./utils')
+
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
+
 const { GraphQLScalarType } = require('graphql')
 
 let _id = 0
@@ -61,6 +66,8 @@ let tags = [
 
 const resolvers = {
   Query: {
+    me: (parent, args, { currentUser }) => currentUser,
+
     totalPhotos: (parent, args, { db }) => db.collection('photos').estimatedDocumentCount(),
 
     allPhotos: (parent, args, { db }) => db.collection('photos').find().toArray(),
@@ -79,6 +86,37 @@ const resolvers = {
       }
       photos.push(newPhoto)
       return newPhoto
+    },
+
+    async githubAuth (parent, { code }, { db }) {
+      let {
+        message,
+        access_token,
+        avatar_url,
+        login,
+        name
+      } = await authorizeWithGitHub({
+        client_id: GITHUB_CLIENT_ID,
+        client_secret: GITHUB_CLIENT_SECRET,
+        code
+      })
+
+      if (message) {
+        throw new Error(message)
+      }
+
+      let latestUserInfo = {
+        name,
+        githubLogin: login,
+        githubToken: access_token,
+        avatar: avatar_url
+      }
+
+      const { ops:[user] } = await db
+        .collection('users')
+        .replaceOne({ githubLogin: login }, latestUserInfo, { upsert: true })
+
+      return { user, token: access_token }
     }
   },
 

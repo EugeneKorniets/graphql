@@ -33,13 +33,20 @@ type User {
   inPhotos: [Photo!]!
 }
 
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
 type Query {
+  me: User
   totalPhotos: Int!
   allPhotos: [Photo!]!
-  totalUsers: Int!,
+  totalUsers: Int!
   allUsers: [User!]!
 }
 
 type Mutation {
   postPhoto(input: PostPhotoInput): Photo!
+  githubAuth(code: String!): AuthPayload!
 }

@@ -1,13 +1,11 @@
 require('dotenv').config()
 
-// import dependencies
 const { MongoClient } = require('mongodb')
 const { ApolloServer } = require('apollo-server-express')
 const express = require('express')
 const expressPlayground = require('graphql-playground-middleware-express').default
 const { readFileSync } = require('fs')
 
-// get environment variables
 const MONGO_DB = process.env.DB_HOST
 const PORT = process.env.PORT
 
@@ -21,14 +19,18 @@ async function start () {
     useNewUrlParser: true
   })
 
-  const db = client.db()
+  console.log(`MongoDB connected`)
 
-  const context = { db }
+  const db = client.db()
 
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context
+    context: async ({ req }) => {
+      const githubToken = req.headers.authorization
+      const currentUser = await db.collection('users').findOne({ githubToken })
+      return { db, currentUser }
+    }
   })
 
   server.applyMiddleware({
@@ -50,8 +52,9 @@ async function start () {
 
 start()
   .then(() => {
-    console.log(`MongoDB connected`)
+    console.log(`Successful application running`)
   })
-  .catch(() => {
-    console.log(`Failed to connect to MongoDB`)
+  .catch((err) => {
+    console.log(`Failed application running`)
+    console.dir(err)
   })

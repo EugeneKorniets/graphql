@@ -1,9 +1,7 @@
-const { ApolloServer } = require('apollo-server')
 const { GraphQLScalarType } = require('graphql')
 
-const typeDefs = require('./server-app/typeDefs')
-
 let _id = 0
+
 let photos = [
   {
     id: 1,
@@ -30,6 +28,7 @@ let photos = [
     created: '07-11-2019'
   }
 ]
+
 let users = [
   {
     githubLogin: 1,
@@ -40,6 +39,7 @@ let users = [
     name: 'John Snow'
   }
 ]
+
 let tags = [
   {
     photoID: 1,
@@ -88,24 +88,24 @@ const resolvers = {
     postedBy: parent => users.find(user => user.githubLogin === parent.githubUser),
 
     taggedUsers: parent => tags
-        // возвращаем массив тегов для текущего пользователя
-        .filter(tag => tag.photoID === parent.id)
-        // возвращаем массив userID
-        .map(tag => tag.userID)
-        // возвращаем массив объектов User
-        .map(userID => users.find(user => user.githubLogin === userID))
+    // возвращаем массив тегов для текущего пользователя
+      .filter(tag => tag.photoID === parent.id)
+      // возвращаем массив userID
+      .map(tag => tag.userID)
+      // возвращаем массив объектов User
+      .map(userID => users.find(user => user.githubLogin === userID))
   },
 
   User: {
     postedPhotos: parent => photos.filter(photo => photo.githubUser === parent.githubLogin),
 
     inPhotos: parent => tags
-        // возвращаем массив тегов для текущего юзера
-        .filter(tag => tag.userID === parent.id)
-        // возвращаем массив photoID
-        .map(tag => tag.photoID)
-        // возвращаем массив объектов Photo
-        .map(photoID => photos.find(photo => photo.id === photoID))
+    // возвращаем массив тегов для текущего юзера
+      .filter(tag => tag.userID === parent.id)
+      // возвращаем массив photoID
+      .map(tag => tag.photoID)
+      // возвращаем массив объектов Photo
+      .map(photoID => photos.find(photo => photo.id === photoID))
   },
 
   DateTime: new GraphQLScalarType({
@@ -117,11 +117,4 @@ const resolvers = {
   })
 }
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers
-})
-
-server
-  .listen()
-  .then(({ url }) => console.log(`GraphQL service running on ${url}`))
+module.exports = resolvers

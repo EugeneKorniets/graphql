@@ -2,9 +2,9 @@
   "name": "graphql-experience",
   "version": "0.0.1",
   "description": "My first GraphQL experience",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "nodemon -e js, json, graphql",
+    "start": "nodemon server.js -e js, json, graphql",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,6 +15,7 @@
     "graphql",
     "node",
     "apollo",
+    "express",
     "vue",
     "javascript"
   ],
@@ -25,8 +26,10 @@
   },
   "homepage": "https://github.com/EugeneKorniets/graphql#readme",
   "dependencies": {
-    "apollo-server": "^2.9.5",
+    "apollo-server-express": "^2.9.5",
+    "express": "^4.17.1",
     "graphql": "^14.5.8",
+    "graphql-playground-middleware-express": "^1.7.12",
     "nodemon": "^1.19.3"
   }
 }

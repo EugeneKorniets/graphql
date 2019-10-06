@@ -5,46 +5,6 @@ const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 
 const { GraphQLScalarType } = require('graphql')
 
-let _id = 0
-
-let photos = [
-  {
-    id: 1,
-    name: 'Image 1 from 1 user',
-    description: 'This 1s photo',
-    category: 'SELFIE',
-    githubUser: 1,
-    created: '07-11-2018'
-  },
-  {
-    id: 2,
-    name: 'Image 2 from 1 user',
-    description: 'This 1s photo',
-    category: 'PORTRAIT',
-    githubUser: 1,
-    created: '12-15-2018'
-  },
-  {
-    id: 3,
-    name: 'Image 3 from 2 user',
-    description: 'This 2s photo',
-    category: 'ACTION',
-    githubUser: 2,
-    created: '07-11-2019'
-  }
-]
-
-let users = [
-  {
-    githubLogin: 1,
-    name: 'Peter Parker'
-  },
-  {
-    githubLogin: 2,
-    name: 'John Snow'
-  }
-]
-
 let tags = [
   {
     photoID: 1,
@@ -78,13 +38,20 @@ const resolvers = {
   },
 
   Mutation: {
-    postPhoto(parent, args) {
-      let newPhoto = {
-        id: _id++,
+    async postPhoto(parent, args, { db, currentUser }) {
+      if (!currentUser) {
+        throw new Error('Only an authorized user can post a photo')
+      }
+
+      const newPhoto = {
         ...args.input,
+        userID: currentUser.githubLogin,
         created: new Date()
       }
-      photos.push(newPhoto)
+
+      const { insertedIds } = await db.collection('photos').insert(newPhoto)
+      newPhoto.id = insertedIds[0]
+
       return newPhoto
     },
 
@@ -121,9 +88,11 @@ const resolvers = {
   },
 
   Photo: {
-    url: parent => `https://avatars.mds.yandex.net/get-pdb/1378219/d4a355b0-9212-4181-b804-52f2e687cde5/s1200`,
+    id: parent => parent.id || parent._id,
 
-    postedBy: parent => users.find(user => user.githubLogin === parent.githubUser),
+    url: parent => `/img/photos/${parent._id}.jpg`,
+
+    postedBy: (parent, args, { db }) => db.collection('users').findOne({ githubLogin: parent.userID }),
 
     taggedUsers: parent => tags
       // возвращаем массив тегов для текущего пользователя
@@ -131,19 +100,19 @@ const resolvers = {
       // возвращаем массив userID
       .map(tag => tag.userID)
       // возвращаем массив объектов User
-      .map(userID => users.find(user => user.githubLogin === userID))
+      .map(userID => db.collection('users').find({ githubLogin: userID }))
   },
 
   User: {
-    postedPhotos: parent => photos.filter(photo => photo.githubUser === parent.githubLogin),
+    postedPhotos: (parent, args, { db }) => db.collection('photos').find({ userID: parent.githubLogin }).toArray(),
 
-    inPhotos: parent => tags
+    inPhotos: (parent, args, { db }) => tags
       // возвращаем массив тегов для текущего юзера
       .filter(tag => tag.userID === parent.id)
       // возвращаем массив photoID
       .map(tag => tag.photoID)
       // возвращаем массив объектов Photo
-      .map(photoID => photos.find(photo => photo.id === photoID))
+      .map(photoID => db.collection('photos').find({ _id: photoID }).toArray())
   },
 
   DateTime: new GraphQLScalarType({

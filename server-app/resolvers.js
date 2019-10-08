@@ -1,3 +1,5 @@
+const fetch = require('node-fetch')
+
 const { authorizeWithGitHub } = require('./utils')
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
@@ -84,6 +86,36 @@ const resolvers = {
         .replaceOne({ githubLogin: login }, latestUserInfo, { upsert: true })
 
       return { user, token: access_token }
+    },
+
+    addFakeUsers: async (root, { count }, { db }) => {
+      let randomUserApi = `https://randomuser.me/api/?results=${count}`
+      let { results } = await fetch(randomUserApi)
+        .then(res => res.json())
+
+      let users = results.map(res => ({
+        githubLogin: res.login.username,
+        name: `${res.name.first} ${res.name.last}`,
+        avatar: res.picture.thumbnail,
+        githubToken: res.login.sha1
+      }))
+
+      await db.collection('users').insert(users)
+
+      return users
+    },
+
+    async fakeUserAuth (parent, { githubLogin }, { db }) {
+      let user = await db.collection('users').findOne({ githubLogin })
+
+      if (!user) {
+        throw new Error(`Cannot find user with GithubLogin ${githubLogin}`)
+      }
+
+      return {
+        token: user.githubToken,
+        user
+      }
     }
   },
 

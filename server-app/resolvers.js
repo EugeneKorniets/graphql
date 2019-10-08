@@ -1,30 +1,12 @@
 const fetch = require('node-fetch')
 
 const { authorizeWithGitHub } = require('./utils')
+const { ObjectID } = require('mongodb')
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 
 const { GraphQLScalarType } = require('graphql')
-
-let tags = [
-  {
-    photoID: 1,
-    userID: 1
-  },
-  {
-    photoID: 2,
-    userID: 1
-  },
-  {
-    photoID: 2,
-    userID: 2
-  },
-  {
-    photoID: 3,
-    userID: 1
-  }
-]
 
 const resolvers = {
   Query: {
@@ -55,6 +37,19 @@ const resolvers = {
       newPhoto.id = insertedIds[0]
 
       return newPhoto
+    },
+
+    async createTag(parent, { userID, photoID }, { db }) {
+      // TODO обработать кейс с отсутсвием фотки или юзера
+
+      let newTag = {
+        userID,
+        photoID
+      }
+
+      await db.collection('tags').replaceOne(newTag, newTag, { upsert: true })
+
+      return await db.collection('photos').findOne({_id: ObjectID(photoID)})
     },
 
     async githubAuth (parent, { code }, { db }) {
@@ -126,25 +121,37 @@ const resolvers = {
 
     postedBy: (parent, args, { db }) => db.collection('users').findOne({ githubLogin: parent.userID }),
 
-    taggedUsers: parent => tags
-      // возвращаем массив тегов для текущего пользователя
-      .filter(tag => tag.photoID === parent.id)
-      // возвращаем массив userID
-      .map(tag => tag.userID)
-      // возвращаем массив объектов User
-      .map(userID => db.collection('users').find({ githubLogin: userID }))
+    taggedUsers: async (parent, args, { db }) => {
+      const tags = await db.collection('tags').find().toArray()
+
+      const userIDs = tags
+        // возвращаем массив тегов для текущей фотографии
+        .filter(tag => tag.photoID === parent._id.toString())
+        // возвращаем массив userID
+        .map(tag => tag.userID)
+
+        return db.collection('users')
+          .find({ githubLogin: { $in: userIDs }})
+          .toArray()
+    }
   },
 
   User: {
     postedPhotos: (parent, args, { db }) => db.collection('photos').find({ userID: parent.githubLogin }).toArray(),
 
-    inPhotos: (parent, args, { db }) => tags
-      // возвращаем массив тегов для текущего юзера
-      .filter(tag => tag.userID === parent.id)
-      // возвращаем массив photoID
-      .map(tag => tag.photoID)
-      // возвращаем массив объектов Photo
-      .map(photoID => db.collection('photos').find({ _id: photoID }).toArray())
+    inPhotos: async (parent, args, { db }) => {
+      const tags = await db.collection('tags').find().toArray()
+
+      const photoIDs = tags
+        // возвращаем массив тегов для текущего юзера
+        .filter(tag => tag.userID === parent.githubLogin)
+        // возвращаем массив photoID
+        .map(tag => ObjectID(tag.photoID))
+
+      return db.collection('photos')
+        .find({ _id: { $in: photoIDs }})
+        .toArray()
+    }
   },
 
   DateTime: new GraphQLScalarType({

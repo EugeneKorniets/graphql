@@ -19,7 +19,7 @@ async function start () {
     useNewUrlParser: true
   })
 
-  console.log(`MongoDB connected`)
+  console.info(`MongoDB connected`)
 
   const db = client.db()
 
@@ -44,17 +44,17 @@ async function start () {
 
   app
     .listen({ port: PORT }, () => {
-      console.log(`Client Service running on http://localhost:${PORT}`)
-      console.log(`GraphQL Service running on http://localhost:${PORT}${server.graphqlPath}`)
-      console.log(`Playground Service running on http://localhost:${PORT}/playground`)
+      console.info(`Client Service running on http://localhost:${PORT}`)
+      console.info(`GraphQL Service running on http://localhost:${PORT}${server.graphqlPath}`)
+      console.info(`Playground Service running on http://localhost:${PORT}/playground`)
     })
 }
 
 start()
   .then(() => {
-    console.log(`Successful application running`)
+    console.info(`Successful application running`)
   })
   .catch((err) => {
-    console.log(`Failed application running`)
+    console.info(`Failed application running`)
     console.error(err)
   })

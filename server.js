@@ -37,7 +37,7 @@ async function start () {
     app
   })
 
-  app.get('/', (req, res) => res.end('Welcome to the Application'))
+  app.use(express.static('./client-app/dist/'))
   app.get('/playground', expressPlayground({
     endpoint: '/graphql'
   }))
@@ -56,5 +56,5 @@ start()
   })
   .catch((err) => {
     console.log(`Failed application running`)
-    console.dir(err)
+    console.error(err)
   })

@@ -30,7 +30,7 @@ export default new Vuex.Store({
 
   actions: {
     loadTotalPhotos ({ commit }) {
-      let query = '{totalPhotos}'
+      let query = '{totalPhotos, totalUsers}'
       let opts = {
         method: 'POST',
         headers: {
@@ -43,26 +43,6 @@ export default new Vuex.Store({
         .then(res => res.json())
         .then(({ data }) => {
           commit('setTotalPhotos', data)
-          return data
-        })
-        .catch((err) => {
-          console.error(err)
-        })
-    },
-
-    loadTotalUsers ({ commit }) {
-      let query = '{totalUsers}'
-      let opts = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query })
-      }
-
-      return fetch(url, opts)
-        .then(res => res.json())
-        .then(({ data }) => {
           commit('setTotalUsers', data)
           return data
         })
